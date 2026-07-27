@@ -1,9 +1,7 @@
-// Evidence entity - Proof submitted to satisfy a requirement
-// Only current requirement owner can create evidence; created via submitEvidence function
 {
   "name": "Evidence",
   "type": "object",
-  "description": "Evidence submitted by requirement owner to satisfy verification requirement",
+  "description": "Evidence submitted by requirement owner to satisfy verification requirement. All mutations through submitEvidence function.",
   "properties": {
     "requirementId": {
       "type": "string",
@@ -34,5 +32,10 @@
       "description": "Submission timestamp"
     }
   },
-  "required": ["requirementId", "submittedBy", "evidenceType", "note", "submittedAt"]
+  "required": ["requirementId", "submittedBy", "evidenceType", "note", "submittedAt"],
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  }
 }

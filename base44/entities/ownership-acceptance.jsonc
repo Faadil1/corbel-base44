@@ -1,8 +1,7 @@
-// OwnershipAcceptance entity - Record of user accepting ownership of a requirement
 {
   "name": "OwnershipAcceptance",
   "type": "object",
-  "description": "Record of a user accepting ownership responsibility for a requirement",
+  "description": "Record of a user accepting ownership responsibility for a requirement.",
   "properties": {
     "requirementId": {
       "type": "string",
@@ -23,5 +22,10 @@
       "description": "Whether this acceptance is current or has been superseded"
     }
   },
-  "required": ["requirementId", "acceptedBy", "acceptedAt", "status"]
+  "required": ["requirementId", "acceptedBy", "acceptedAt", "status"],
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  }
 }

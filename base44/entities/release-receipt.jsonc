@@ -1,11 +1,7 @@
-// ReleaseReceipt entity - Tamper-evident proof of release
-// SECURITY NOTE: Clients should not create, update, or delete receipts.
-// Receipts generated exclusively by generateReleaseReceipt function when operation transitions to RELEASED.
-// RLS rules required to prevent client writes (to be defined with Base44 RLS syntax).
 {
   "name": "ReleaseReceipt",
   "type": "object",
-  "description": "Tamper-evident receipt proving an operation was released. Client writes should be denied via RLS.",
+  "description": "Tamper-evident operational receipt proving an operation was released.",
   "properties": {
     "operationId": {
       "type": "string",
@@ -21,12 +17,17 @@
       "items": {
         "type": "string"
       },
-      "description": "Sequence of event IDs leading to release (for audit trail)"
+      "description": "Sequence of event IDs leading to release (audit trail)"
     },
     "receiptHash": {
       "type": "string",
-      "format": "regex",
-      "description": "Cryptographic hash of all preceding events (tamper-evidence)"
+      "description": "Cryptographic hash of all preceding events (tamper-evidence). Read-only to clients.",
+      "write": false
+    },
+    "eventChainHeadHash": {
+      "type": "string",
+      "description": "Hash of the final event in the chain. Read-only to clients.",
+      "write": false
     },
     "generatedAt": {
       "type": "string",
@@ -34,5 +35,13 @@
       "description": "Receipt generation timestamp"
     }
   },
-  "required": ["operationId", "releaseStatus", "eventChain", "receiptHash", "generatedAt"]
+  "required": ["operationId", "releaseStatus", "eventChain", "receiptHash", "generatedAt"],
+  "create": false,
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  },
+  "update": false,
+  "delete": false
 }

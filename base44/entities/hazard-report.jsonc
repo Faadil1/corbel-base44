@@ -1,8 +1,7 @@
-// HazardReport entity - Operational hazard detection and tracking
 {
   "name": "HazardReport",
   "type": "object",
-  "description": "Detected operational hazard that may trigger state transitions",
+  "description": "Detected operational hazard that may trigger state transitions.",
   "properties": {
     "operationId": {
       "type": "string",
@@ -41,5 +40,10 @@
       "description": "Report timestamp"
     }
   },
-  "required": ["operationId", "requirementId", "reportedBy", "title", "description", "severity", "createdAt"]
+  "required": ["operationId", "requirementId", "reportedBy", "title", "description", "severity", "createdAt"],
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  }
 }

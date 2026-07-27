@@ -1,9 +1,7 @@
-// Verification entity - Independent review and approval/rejection of evidence
-// Only created via verifyEvidence function; verifier cannot verify their own evidence
 {
   "name": "Verification",
   "type": "object",
-  "description": "Independent verification decision on submitted evidence",
+  "description": "Independent verification decision on submitted evidence. All mutations through verifyEvidence function.",
   "properties": {
     "requirementId": {
       "type": "string",
@@ -29,5 +27,10 @@
       "description": "Verification decision timestamp"
     }
   },
-  "required": ["requirementId", "verifierUserId", "decision", "note", "verifiedAt"]
+  "required": ["requirementId", "verifierUserId", "decision", "note", "verifiedAt"],
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  }
 }

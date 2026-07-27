@@ -1,11 +1,7 @@
-// OperationalEvent entity - Audit log of state changes and actions
-// SECURITY NOTE: Clients should not create, update, or delete events.
-// Events created exclusively by backend functions to record state transitions.
-// RLS rules required to prevent client writes (to be defined with Base44 RLS syntax).
 {
   "name": "OperationalEvent",
   "type": "object",
-  "description": "Append-restricted audit log entry for operation state changes and actions. Client writes should be denied via RLS.",
+  "description": "Append-restricted audit log entry for operation state changes and actions.",
   "properties": {
     "operationId": {
       "type": "string",
@@ -13,7 +9,7 @@
     },
     "eventType": {
       "type": "string",
-      "description": "Type of event (e.g., OWNERSHIP_ACCEPTED, EVIDENCE_SUBMITTED, VERIFICATION_APPROVED, STATE_CHANGED)"
+      "description": "Type of event (OWNERSHIP_ACCEPTED, EVIDENCE_SUBMITTED, VERIFICATION_APPROVED, STATE_CHANGED, etc.)"
     },
     "actorUserId": {
       "type": "string",
@@ -36,11 +32,29 @@
       "type": "object",
       "description": "Event-specific data (requirementId, userId, etc.)"
     },
+    "previousEventHash": {
+      "type": "string",
+      "description": "Hash of previous event in chain (empty for first event). Read-only to clients.",
+      "write": false
+    },
+    "eventHash": {
+      "type": "string",
+      "description": "Cryptographic hash of this event (includes all fields and previous hash). Read-only to clients.",
+      "write": false
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
       "description": "Event timestamp"
     }
   },
-  "required": ["operationId", "eventType", "actorUserId", "message", "createdAt"]
+  "required": ["operationId", "eventType", "actorUserId", "message", "createdAt"],
+  "create": false,
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  },
+  "update": false,
+  "delete": false
 }

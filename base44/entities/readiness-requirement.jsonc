@@ -1,14 +1,11 @@
-// ReadinessRequirement entity - Individual verification requirement for an operation
-// SECURITY NOTE: status and ownerUserId writes must be restricted to backend functions.
-// RLS rules required (to be defined with Base44 RLS syntax).
 {
   "name": "ReadinessRequirement",
   "type": "object",
-  "description": "Individual verification requirement. status and ownerUserId writes restricted to backend functions.",
+  "description": "Individual verification requirement. All mutations through backend functions.",
   "properties": {
     "operationId": {
       "type": "string",
-      "description": "Reference to parent Operation (stored as string ID)"
+      "description": "Reference to parent Operation"
     },
     "label": {
       "type": "string",
@@ -26,11 +23,13 @@
     "status": {
       "type": "string",
       "enum": ["SATISFIED", "UNOWNED", "OWNED", "EVIDENCE_SUBMITTED", "VERIFIED", "REJECTED"],
-      "description": "Current verification state. Clients can read; only backend functions can write."
+      "description": "Current verification state (SATISFIED/UNOWNED/OWNED/EVIDENCE_SUBMITTED/VERIFIED/REJECTED). Read-only to clients.",
+      "write": false
     },
     "ownerUserId": {
       "type": "string",
-      "description": "User ID of owner accepting this requirement (empty string if unowned). Clients can read; only backend acceptOwnership can write."
+      "description": "User ID of owner accepting this requirement (empty if unowned). Read-only to clients; written by acceptOwnership.",
+      "write": false
     },
     "evidenceRequired": {
       "type": "boolean",
@@ -46,5 +45,13 @@
       "description": "Creation timestamp"
     }
   },
-  "required": ["operationId", "label", "category", "criticality", "status", "evidenceRequired", "verificationRequired", "createdAt"]
+  "required": ["operationId", "label", "category", "criticality", "status", "evidenceRequired", "verificationRequired", "createdAt"],
+  "create": false,
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  },
+  "update": false,
+  "delete": false
 }

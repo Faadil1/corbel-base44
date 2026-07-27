@@ -1,10 +1,7 @@
-// Operation entity - Primary work unit for release control
-// SECURITY NOTE: currentState write access must be restricted to backend recalculateReadiness function.
-// RLS rules required (to be defined with Base44 RLS syntax).
 {
   "name": "Operation",
   "type": "object",
-  "description": "Primary work unit with operational readiness state. currentState writes restricted to backend function.",
+  "description": "Primary work unit with operational readiness state. All mutations through backend functions.",
   "properties": {
     "name": {
       "type": "string",
@@ -16,8 +13,9 @@
     },
     "currentState": {
       "type": "string",
-      "enum": ["READY", "HOLD_UNOWNED", "HOLD_OWNED", "VERIFYING"],
-      "description": "Current readiness state. Clients can read; only backend recalculateReadiness can write."
+      "enum": ["READY", "HOLD", "VERIFYING", "RELEASED"],
+      "description": "Current readiness state (READY/HOLD/VERIFYING/RELEASED). Read-only to clients; written by recalculateReadiness.",
+      "write": false
     },
     "createdAt": {
       "type": "string",
@@ -30,5 +28,13 @@
       "description": "Last modification timestamp"
     }
   },
-  "required": ["name", "location", "currentState", "createdAt", "updatedAt"]
+  "required": ["name", "location", "currentState", "createdAt", "updatedAt"],
+  "create": false,
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  },
+  "update": false,
+  "delete": false
 }

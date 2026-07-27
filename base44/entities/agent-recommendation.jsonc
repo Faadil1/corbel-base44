@@ -1,9 +1,7 @@
-// AgentRecommendation entity - AI agent recommendations for operational readiness
-// Created by backend agent via recommendAction function
 {
   "name": "AgentRecommendation",
   "type": "object",
-  "description": "AI agent recommendation for operation status or actions. Client writes should be denied via RLS.",
+  "description": "AI agent recommendation for operation status or actions. Created through backend agent function.",
   "properties": {
     "operationId": {
       "type": "string",
@@ -33,5 +31,10 @@
       "description": "Recommendation timestamp"
     }
   },
-  "required": ["operationId", "recommendationType", "reasoning", "blocked", "createdAt"]
+  "required": ["operationId", "recommendationType", "reasoning", "blocked", "createdAt"],
+  "read": {
+    "user_condition": {
+      "id": "{{user.id}}"
+    }
+  }
 }
