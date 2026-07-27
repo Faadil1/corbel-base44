@@ -1,0 +1,38 @@
+// AgentRecommendation entity - AI agent recommendations for operational readiness
+// Created by backend agent via recommendAction function
+{
+  "name": "AgentRecommendation",
+  "type": "object",
+  "description": "AI agent recommendation for operation status or actions",
+  "properties": {
+    "operationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to Operation"
+    },
+    "recommendationType": {
+      "type": "string",
+      "enum": ["RELEASE", "HOLD", "ESCALATE"],
+      "description": "Type of recommendation"
+    },
+    "reasoning": {
+      "type": "string",
+      "format": "richtext",
+      "description": "AI-generated reasoning for the recommendation"
+    },
+    "blocked": {
+      "type": "boolean",
+      "description": "Whether recommendation is blocked (e.g., insufficient data)"
+    },
+    "blockReason": {
+      "type": "string",
+      "description": "Reason if recommendation is blocked (empty if not blocked)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Recommendation timestamp"
+    }
+  },
+  "required": ["operationId", "recommendationType", "reasoning", "blocked", "createdAt"]
+}

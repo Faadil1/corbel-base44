@@ -1,0 +1,39 @@
+// Evidence entity - Proof submitted to satisfy a requirement
+// Only current requirement owner can create evidence; created via submitEvidence function
+{
+  "name": "Evidence",
+  "type": "object",
+  "description": "Evidence submitted by requirement owner to satisfy verification requirement",
+  "properties": {
+    "requirementId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to ReadinessRequirement"
+    },
+    "submittedBy": {
+      "type": "string",
+      "description": "User ID of evidence submitter (must be current requirement owner)"
+    },
+    "evidenceType": {
+      "type": "string",
+      "enum": ["PHOTO", "DOCUMENT", "REPORT", "NOTE"],
+      "description": "Type of evidence"
+    },
+    "fileUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to evidence file (photo, document, etc.); empty if none"
+    },
+    "note": {
+      "type": "string",
+      "format": "richtext",
+      "description": "Free-form note about the evidence"
+    },
+    "submittedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Submission timestamp"
+    }
+  },
+  "required": ["requirementId", "submittedBy", "evidenceType", "note", "submittedAt"]
+}

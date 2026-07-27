@@ -1,0 +1,46 @@
+// OperationalEvent entity - Audit log of state changes and actions
+// SERVER-ONLY: Clients cannot create, update, or delete events
+// Events are created exclusively by backend functions to record state transitions
+{
+  "name": "OperationalEvent",
+  "type": "object",
+  "description": "Immutable audit log entry for operation state changes and actions",
+  "properties": {
+    "operationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to Operation"
+    },
+    "eventType": {
+      "type": "string",
+      "description": "Type of event (e.g., OWNERSHIP_ACCEPTED, EVIDENCE_SUBMITTED, VERIFICATION_APPROVED, STATE_CHANGED)"
+    },
+    "actorUserId": {
+      "type": "string",
+      "description": "User ID of actor causing the event (or 'system' for automated events)"
+    },
+    "previousState": {
+      "type": "string",
+      "description": "State before this event (empty if not applicable)"
+    },
+    "newState": {
+      "type": "string",
+      "description": "State after this event (empty if not applicable)"
+    },
+    "message": {
+      "type": "string",
+      "format": "richtext",
+      "description": "Human-readable description of the event"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Event-specific data (requirementId, userId, etc.)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp"
+    }
+  },
+  "required": ["operationId", "eventType", "actorUserId", "message", "createdAt"]
+}

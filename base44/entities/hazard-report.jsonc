@@ -1,0 +1,47 @@
+// HazardReport entity - Operational hazard detection and tracking
+{
+  "name": "HazardReport",
+  "type": "object",
+  "description": "Detected operational hazard that may trigger state transitions",
+  "properties": {
+    "operationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to parent Operation"
+    },
+    "requirementId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to related ReadinessRequirement, if applicable"
+    },
+    "reportedBy": {
+      "type": "string",
+      "description": "User ID of hazard reporter"
+    },
+    "title": {
+      "type": "string",
+      "description": "Hazard title"
+    },
+    "description": {
+      "type": "string",
+      "format": "richtext",
+      "description": "Detailed hazard description"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH"],
+      "description": "Hazard severity level"
+    },
+    "photoUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Photo URL documenting the hazard (empty if none)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Report timestamp"
+    }
+  },
+  "required": ["operationId", "requirementId", "reportedBy", "title", "description", "severity", "createdAt"]
+}

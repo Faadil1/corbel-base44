@@ -1,0 +1,38 @@
+// ReleaseReceipt entity - Immutable proof of release
+// SERVER-ONLY: Clients cannot create, update, or delete receipts
+// Receipts are generated exclusively by generateReleaseReceipt function when operation transitions to RELEASED
+{
+  "name": "ReleaseReceipt",
+  "type": "object",
+  "description": "Immutable cryptographic receipt proving an operation was released",
+  "properties": {
+    "operationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to released Operation"
+    },
+    "releaseStatus": {
+      "type": "string",
+      "enum": ["RELEASED"],
+      "description": "Always RELEASED; exists only when operation reaches that state"
+    },
+    "eventChain": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sequence of event IDs leading to release (for audit trail)"
+    },
+    "receiptHash": {
+      "type": "string",
+      "format": "regex",
+      "description": "Cryptographic hash of all preceding events (tamper-evidence)"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Receipt generation timestamp"
+    }
+  },
+  "required": ["operationId", "releaseStatus", "eventChain", "receiptHash", "generatedAt"]
+}

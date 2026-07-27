@@ -1,0 +1,28 @@
+// OwnershipAcceptance entity - Record of user accepting ownership of a requirement
+{
+  "name": "OwnershipAcceptance",
+  "type": "object",
+  "description": "Record of a user accepting ownership responsibility for a requirement",
+  "properties": {
+    "requirementId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to ReadinessRequirement"
+    },
+    "acceptedBy": {
+      "type": "string",
+      "description": "User ID of owner accepting responsibility"
+    },
+    "acceptedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of acceptance"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "SUPERSEDED"],
+      "description": "Whether this acceptance is current or has been superseded"
+    }
+  },
+  "required": ["requirementId", "acceptedBy", "acceptedAt", "status"]
+}
