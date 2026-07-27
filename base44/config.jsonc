@@ -9,7 +9,6 @@
   "entitiesDir": "./entities",
   "functionsDir": "./functions",
   "agentsDir": "./agents",
-  "authDir": "./auth",
 
   "site": {
     "buildCommand": "npm run build",
