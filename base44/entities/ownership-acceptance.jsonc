@@ -24,10 +24,13 @@
   },
   "required": ["requirementId", "acceptedBy", "acceptedAt", "status"],
   "rls": {
+    "create": false,
     "read": {
       "user_condition": {
         "id": "{{user.id}}"
       }
-    }
+    },
+    "update": false,
+    "delete": false
   }
 }

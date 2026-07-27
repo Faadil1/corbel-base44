@@ -5,7 +5,7 @@
     "corbel_role": {
       "type": "string",
       "enum": ["OPERATIONS_LEAD", "ACCOUNTABLE_OWNER", "INDEPENDENT_VERIFIER"],
-      "description": "CORBEL business role (cannot be self-assigned). Read-only to clients; assigned by seed function or admin.",
+      "description": "CORBEL business role.",
       "rls": {
         "write": false
       }

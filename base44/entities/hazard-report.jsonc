@@ -42,10 +42,13 @@
   },
   "required": ["operationId", "requirementId", "reportedBy", "title", "description", "severity", "createdAt"],
   "rls": {
+    "create": false,
     "read": {
       "user_condition": {
         "id": "{{user.id}}"
       }
-    }
+    },
+    "update": false,
+    "delete": false
   }
 }

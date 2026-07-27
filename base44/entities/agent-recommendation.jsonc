@@ -33,10 +33,13 @@
   },
   "required": ["operationId", "recommendationType", "reasoning", "blocked", "createdAt"],
   "rls": {
+    "create": false,
     "read": {
       "user_condition": {
         "id": "{{user.id}}"
       }
-    }
+    },
+    "update": false,
+    "delete": false
   }
 }
