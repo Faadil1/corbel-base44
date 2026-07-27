@@ -7,7 +7,6 @@
   "properties": {
     "requirementId": {
       "type": "string",
-      "format": "uuid",
       "description": "Reference to ReadinessRequirement"
     },
     "verifierUserId": {

@@ -1,14 +1,14 @@
-// ReleaseReceipt entity - Immutable proof of release
-// SERVER-ONLY: Clients cannot create, update, or delete receipts
-// Receipts are generated exclusively by generateReleaseReceipt function when operation transitions to RELEASED
+// ReleaseReceipt entity - Tamper-evident proof of release
+// SECURITY NOTE: Clients should not create, update, or delete receipts.
+// Receipts generated exclusively by generateReleaseReceipt function when operation transitions to RELEASED.
+// RLS rules required to prevent client writes (to be defined with Base44 RLS syntax).
 {
   "name": "ReleaseReceipt",
   "type": "object",
-  "description": "Immutable cryptographic receipt proving an operation was released",
+  "description": "Tamper-evident receipt proving an operation was released. Client writes should be denied via RLS.",
   "properties": {
     "operationId": {
       "type": "string",
-      "format": "uuid",
       "description": "Reference to released Operation"
     },
     "releaseStatus": {

@@ -1,14 +1,14 @@
 // ReadinessRequirement entity - Individual verification requirement for an operation
-// status modification is restricted to backend functions (acceptOwnership, submitEvidence, verifyEvidence, etc.)
+// SECURITY NOTE: status and ownerUserId writes must be restricted to backend functions.
+// RLS rules required (to be defined with Base44 RLS syntax).
 {
   "name": "ReadinessRequirement",
   "type": "object",
-  "description": "Individual verification requirement that must be satisfied for operational readiness",
+  "description": "Individual verification requirement. status and ownerUserId writes restricted to backend functions.",
   "properties": {
     "operationId": {
       "type": "string",
-      "format": "uuid",
-      "description": "Reference to parent Operation"
+      "description": "Reference to parent Operation (stored as string ID)"
     },
     "label": {
       "type": "string",
@@ -26,11 +26,11 @@
     "status": {
       "type": "string",
       "enum": ["SATISFIED", "UNOWNED", "OWNED", "EVIDENCE_SUBMITTED", "VERIFIED", "REJECTED"],
-      "description": "Current verification state; modified only by backend functions"
+      "description": "Current verification state. Clients can read; only backend functions can write."
     },
     "ownerUserId": {
       "type": "string",
-      "description": "User ID of owner accepting this requirement; empty string if unowned"
+      "description": "User ID of owner accepting this requirement (empty string if unowned). Clients can read; only backend acceptOwnership can write."
     },
     "evidenceRequired": {
       "type": "boolean",

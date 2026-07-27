@@ -3,11 +3,10 @@
 {
   "name": "AgentRecommendation",
   "type": "object",
-  "description": "AI agent recommendation for operation status or actions",
+  "description": "AI agent recommendation for operation status or actions. Client writes should be denied via RLS.",
   "properties": {
     "operationId": {
       "type": "string",
-      "format": "uuid",
       "description": "Reference to Operation"
     },
     "recommendationType": {

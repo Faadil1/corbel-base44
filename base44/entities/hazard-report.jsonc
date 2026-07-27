@@ -6,13 +6,11 @@
   "properties": {
     "operationId": {
       "type": "string",
-      "format": "uuid",
       "description": "Reference to parent Operation"
     },
     "requirementId": {
       "type": "string",
-      "format": "uuid",
-      "description": "Reference to related ReadinessRequirement, if applicable"
+      "description": "Reference to related ReadinessRequirement"
     },
     "reportedBy": {
       "type": "string",

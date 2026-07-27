@@ -1,14 +1,14 @@
 // OperationalEvent entity - Audit log of state changes and actions
-// SERVER-ONLY: Clients cannot create, update, or delete events
-// Events are created exclusively by backend functions to record state transitions
+// SECURITY NOTE: Clients should not create, update, or delete events.
+// Events created exclusively by backend functions to record state transitions.
+// RLS rules required to prevent client writes (to be defined with Base44 RLS syntax).
 {
   "name": "OperationalEvent",
   "type": "object",
-  "description": "Immutable audit log entry for operation state changes and actions",
+  "description": "Append-restricted audit log entry for operation state changes and actions. Client writes should be denied via RLS.",
   "properties": {
     "operationId": {
       "type": "string",
-      "format": "uuid",
       "description": "Reference to Operation"
     },
     "eventType": {

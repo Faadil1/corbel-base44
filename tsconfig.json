@@ -3,7 +3,11 @@
     "target": "ES2020",
     "module": "ES2020",
     "moduleResolution": "node",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
@@ -16,6 +20,14 @@
     "rootDir": "./",
     "resolveJsonModule": true
   },
-  "include": ["backend/**/*.ts", "frontend/**/*.ts", "frontend/**/*.tsx"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "backend/**/*.ts",
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx",
+    "base44/.types/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

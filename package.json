@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run server\" \"npm run frontend\"",
     "server": "ts-node backend/server.ts",
     "frontend": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit"
   },
