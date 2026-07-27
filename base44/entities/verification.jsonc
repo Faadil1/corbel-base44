@@ -28,9 +28,11 @@
     }
   },
   "required": ["requirementId", "verifierUserId", "decision", "note", "verifiedAt"],
-  "read": {
-    "user_condition": {
-      "id": "{{user.id}}"
+  "rls": {
+    "read": {
+      "user_condition": {
+        "id": "{{user.id}}"
+      }
     }
   }
 }

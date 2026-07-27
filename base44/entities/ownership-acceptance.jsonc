@@ -23,9 +23,11 @@
     }
   },
   "required": ["requirementId", "acceptedBy", "acceptedAt", "status"],
-  "read": {
-    "user_condition": {
-      "id": "{{user.id}}"
+  "rls": {
+    "read": {
+      "user_condition": {
+        "id": "{{user.id}}"
+      }
     }
   }
 }

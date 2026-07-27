@@ -1,13 +1,14 @@
 {
   "name": "User",
   "type": "object",
-  "description": "Extension of built-in User entity with CORBEL business roles.",
   "properties": {
     "corbel_role": {
       "type": "string",
       "enum": ["OPERATIONS_LEAD", "ACCOUNTABLE_OWNER", "INDEPENDENT_VERIFIER"],
       "description": "CORBEL business role (cannot be self-assigned). Read-only to clients; assigned by seed function or admin.",
-      "write": false
+      "rls": {
+        "write": false
+      }
     }
   }
 }

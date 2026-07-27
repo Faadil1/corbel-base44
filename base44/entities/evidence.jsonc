@@ -33,9 +33,11 @@
     }
   },
   "required": ["requirementId", "submittedBy", "evidenceType", "note", "submittedAt"],
-  "read": {
-    "user_condition": {
-      "id": "{{user.id}}"
+  "rls": {
+    "read": {
+      "user_condition": {
+        "id": "{{user.id}}"
+      }
     }
   }
 }

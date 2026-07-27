@@ -22,12 +22,16 @@
     "receiptHash": {
       "type": "string",
       "description": "Cryptographic hash of all preceding events (tamper-evidence). Read-only to clients.",
-      "write": false
+      "rls": {
+        "write": false
+      }
     },
     "eventChainHeadHash": {
       "type": "string",
       "description": "Hash of the final event in the chain. Read-only to clients.",
-      "write": false
+      "rls": {
+        "write": false
+      }
     },
     "generatedAt": {
       "type": "string",
@@ -36,12 +40,14 @@
     }
   },
   "required": ["operationId", "releaseStatus", "eventChain", "receiptHash", "generatedAt"],
-  "create": false,
-  "read": {
-    "user_condition": {
-      "id": "{{user.id}}"
-    }
-  },
-  "update": false,
-  "delete": false
+  "rls": {
+    "create": false,
+    "read": {
+      "user_condition": {
+        "id": "{{user.id}}"
+      }
+    },
+    "update": false,
+    "delete": false
+  }
 }

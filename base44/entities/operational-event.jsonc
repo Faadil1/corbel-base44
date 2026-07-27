@@ -35,12 +35,16 @@
     "previousEventHash": {
       "type": "string",
       "description": "Hash of previous event in chain (empty for first event). Read-only to clients.",
-      "write": false
+      "rls": {
+        "write": false
+      }
     },
     "eventHash": {
       "type": "string",
       "description": "Cryptographic hash of this event (includes all fields and previous hash). Read-only to clients.",
-      "write": false
+      "rls": {
+        "write": false
+      }
     },
     "createdAt": {
       "type": "string",
@@ -49,12 +53,14 @@
     }
   },
   "required": ["operationId", "eventType", "actorUserId", "message", "createdAt"],
-  "create": false,
-  "read": {
-    "user_condition": {
-      "id": "{{user.id}}"
-    }
-  },
-  "update": false,
-  "delete": false
+  "rls": {
+    "create": false,
+    "read": {
+      "user_condition": {
+        "id": "{{user.id}}"
+      }
+    },
+    "update": false,
+    "delete": false
+  }
 }

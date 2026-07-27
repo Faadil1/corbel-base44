@@ -32,9 +32,11 @@
     }
   },
   "required": ["operationId", "recommendationType", "reasoning", "blocked", "createdAt"],
-  "read": {
-    "user_condition": {
-      "id": "{{user.id}}"
+  "rls": {
+    "read": {
+      "user_condition": {
+        "id": "{{user.id}}"
+      }
     }
   }
 }
