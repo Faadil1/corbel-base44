@@ -1,0 +1,18 @@
+// Base44 Project Configuration
+// JSONC enables inline documentation and discoverability directly in config files.
+
+{
+  "name": "corbel",
+  "description": "Operational release control for critical work",
+  "visibility": "public",
+
+  "entitiesDir": "./entities",
+  "functionsDir": "./functions",
+  "agentsDir": "./agents",
+  "authDir": "./auth",
+
+  "site": {
+    "buildCommand": "npm run build",
+    "outputDirectory": "../dist"
+  }
+}

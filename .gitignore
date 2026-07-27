@@ -10,3 +10,5 @@ dist/
 .idea/
 .vscode/
 *.iml
+base44/.app.jsonc
+_base44_scaffold/
