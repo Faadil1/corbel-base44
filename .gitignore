@@ -12,3 +12,6 @@ dist/
 *.iml
 base44/.app.jsonc
 _base44_scaffold/
+
+# Temporary Base44 initialization scaffold
+_base44_scaffold/

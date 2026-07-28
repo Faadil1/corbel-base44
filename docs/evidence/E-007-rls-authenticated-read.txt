@@ -1,0 +1,20 @@
+E-007 — Authenticated RLS Read Proof
+
+App ID:
+6a67a87fb27a05cbd4672d8d
+
+Authenticated role:
+admin
+
+Observed:
+- Operation count: 1
+- ReadinessRequirement count: 4
+- Operation: TEST — RECALCULATE
+- Operation state: READY
+- Crew assigned: SATISFIED
+- Equipment inspection: SATISFIED
+- Fall protection anchor: SATISFIED
+- Supervisor present: SATISFIED
+
+Verdict:
+PASS — authenticated role-based RLS read works remotely.
