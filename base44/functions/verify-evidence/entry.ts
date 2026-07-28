@@ -1,133 +1,589 @@
-import { createClientFromRequest } from 'npm:@base44/sdk';
+﻿import { createClientFromRequest } from "npm:@base44/sdk";
 
-async function getAuthorizedUser(client: any, requiredRole?: string): Promise<any> {
-  try {
-    const authUser = await client.auth.me();
-    if (!authUser?.id) return { status: 401, error: 'UNAUTHENTICATED' };
-    let user;
-    try { user = await client.asServiceRole.entities.User.get(authUser.id); }
-    catch (e) { return { status: 404, error: 'NOT_FOUND' }; }
-    if (!user.corbel_role) return { status: 403, error: 'ROLE_FORBIDDEN' };
-    if (requiredRole && user.corbel_role !== requiredRole) return { status: 403, error: 'ROLE_FORBIDDEN' };
-    return { id: user.id, email: authUser.email, corbel_role: user.corbel_role };
-  } catch (error) { return { status: 500, error: 'Internal Server Error' }; }
-}
-function isErrorResponse(obj: any): boolean { return obj?.status && obj?.error; }
-function errorResponse(e: string, r: string, s: number): Response { return new Response(JSON.stringify({ error: e, reason: r }), { status: s, headers: { 'Content-Type': 'application/json' } }); }
-function successResponse(d: any, s: number = 200): Response { return new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } }); }
+type VerificationDecision =
+  | "APPROVED"
+  | "REJECTED";
 
-async function computeEventHash(ph: string | null, p: any): Promise<string> {
-  const c = { operationId: p.operationId, eventType: p.eventType, actorUserId: p.actorUserId, previousState: p.previousState || '', newState: p.newState || '', message: p.message, metadata: p.metadata || {}, createdAt: p.createdAt };
-  const cd = ph ? ph + JSON.stringify(c) : JSON.stringify(c);
-  const e = new TextEncoder();
-  const h = await crypto.subtle.digest('SHA-256', e.encode(cd));
-  const ha = Array.from(new Uint8Array(h));
-  return ha.map(b => b.toString(16).padStart(2, '0')).join('');
+const JSON_HEADERS = {
+  "Content-Type": "application/json"
+};
+
+function jsonResponse(
+  data: Record<string, unknown>,
+  status = 200
+): Response {
+  return new Response(
+    JSON.stringify(data),
+    {
+      status,
+      headers: JSON_HEADERS
+    }
+  );
 }
 
-async function appendEvent(client: any, opId: string, et: string, au: string, msg: string, ps?: string, ns?: string, md?: any): Promise<any> {
-  try {
-    const le = await client.asServiceRole.entities.OperationalEvent.filter({ operationId: opId }, '-createdAt', 1);
-    const ph = le.length > 0 ? le[0].eventHash : null;
-    const now = new Date().toISOString();
-    const p = { operationId: opId, eventType: et, actorUserId: au, previousState: ps, newState: ns, message: msg, metadata: md || {}, createdAt: now };
-    const eh = await computeEventHash(ph, p);
-    return await client.asServiceRole.entities.OperationalEvent.create({ operationId: opId, eventType: et, actorUserId: au, previousState: ps, newState: ns, message: msg, metadata: md, previousEventHash: ph, eventHash: eh, createdAt: now });
-  } catch (e) { console.error('appendEvent error:', e); return null; }
+function isNonEmptyString(
+  value: unknown
+): value is string {
+  return (
+    typeof value === "string" &&
+    value.trim().length > 0
+  );
 }
 
-async function invokeRecalculate(client: any, opId: string): Promise<any> {
-  try {
-    const res = await client.functions.invoke('recalculate-readiness', { operationId: opId });
-    return res.data?.result || res.data;
-  } catch (e) {
-    console.error('recalculate error:', e);
-    return { operationId: opId, stateChanged: false };
+function isNotFoundError(error: any): boolean {
+  const status =
+    error?.status ??
+    error?.statusCode ??
+    error?.response?.status ??
+    null;
+
+  const code =
+    error?.code ??
+    error?.data?.code ??
+    error?.response?.data?.code ??
+    null;
+
+  const message = String(
+    error?.message ?? ""
+  );
+
+  return (
+    status === 404 ||
+    code === "NOT_FOUND" ||
+    code === "ENTITY_NOT_FOUND" ||
+    /\b404\b|not found/i.test(message)
+  );
+}
+
+function normalizeFunctionResult(response: any): any {
+  return (
+    response?.data?.result ??
+    response?.result ??
+    response?.data ??
+    response
+  );
+}
+
+async function sha256(
+  value: string
+): Promise<string> {
+  const encoded =
+    new TextEncoder().encode(value);
+
+  const digest =
+    await crypto.subtle.digest(
+      "SHA-256",
+      encoded
+    );
+
+  return Array.from(
+    new Uint8Array(digest)
+  )
+    .map((byte) =>
+      byte.toString(16).padStart(2, "0")
+    )
+    .join("");
+}
+
+async function appendOperationalEvent(
+  client: any,
+  input: {
+    operationId: string;
+    eventType: string;
+    actorUserId: string;
+    previousState: string;
+    newState: string;
+    message: string;
+    metadata: Record<string, unknown>;
+    createdAt: string;
   }
+): Promise<any> {
+  const previousEvents =
+    await client.asServiceRole.entities.OperationalEvent.filter(
+      {
+        operationId: input.operationId
+      },
+      "-createdAt",
+      1
+    );
+
+  const previousEventHash =
+    previousEvents?.[0]?.eventHash ?? "";
+
+  const canonicalPayload = {
+    operationId: input.operationId,
+    eventType: input.eventType,
+    actorUserId: input.actorUserId,
+    previousState: input.previousState,
+    newState: input.newState,
+    message: input.message,
+    metadata: input.metadata,
+    createdAt: input.createdAt
+  };
+
+  const eventHash = await sha256(
+    previousEventHash +
+      JSON.stringify(canonicalPayload)
+  );
+
+  return await client.asServiceRole.entities.OperationalEvent.create(
+    {
+      ...canonicalPayload,
+      previousEventHash,
+      eventHash
+    }
+  );
 }
 
-export async function handler(req: Request): Promise<Response> {
+Deno.serve(async (req: Request): Promise<Response> => {
   try {
     const client = createClientFromRequest(req);
-    const body = await req.json();
-    const { requirementId, operationId, decision, note } = body;
 
-    if (!requirementId || !operationId || !decision || !note) {
-      return errorResponse('Bad Request', 'requirementId, operationId, decision, note required', 400);
+    /*
+     * Authentication
+     */
+    const authUser = await client.auth.me();
+
+    if (!authUser?.id) {
+      return jsonResponse(
+        {
+          error: "Unauthorized",
+          code: "UNAUTHENTICATED"
+        },
+        401
+      );
     }
 
-    if (!['APPROVED', 'REJECTED'].includes(decision)) {
-      return errorResponse('Bad Request', 'decision must be APPROVED or REJECTED', 400);
-    }
+    /*
+     * Authoritative CORBEL role.
+     */
+    let corbelUser: any;
 
-    const user = await getAuthorizedUser(client, 'INDEPENDENT_VERIFIER');
-    if (isErrorResponse(user)) {
-      return errorResponse(user.error, user.reason || 'Authorization failed', user.status);
-    }
-
-    let requirement: any;
     try {
-      requirement = await client.asServiceRole.entities.ReadinessRequirement.get(requirementId);
-    } catch (e) {
-      return errorResponse('NOT_FOUND', 'ReadinessRequirement not found', 404);
+      corbelUser =
+        await client.asServiceRole.entities.User.get(
+          authUser.id
+        );
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return jsonResponse(
+          {
+            error: "Forbidden",
+            code: "ROLE_FORBIDDEN",
+            reason:
+              "Authenticated user has no CORBEL user record"
+          },
+          403
+        );
+      }
+
+      throw error;
+    }
+
+    if (
+      corbelUser?.corbel_role !==
+      "INDEPENDENT_VERIFIER"
+    ) {
+      return jsonResponse(
+        {
+          error: "Forbidden",
+          code: "ROLE_FORBIDDEN",
+          reason:
+            "verify-evidence requires the INDEPENDENT_VERIFIER role"
+        },
+        403
+      );
+    }
+
+    /*
+     * Parse request body.
+     */
+    let body: any;
+
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "INVALID_JSON"
+        },
+        400
+      );
+    }
+
+    if (
+      !body ||
+      typeof body !== "object" ||
+      Array.isArray(body)
+    ) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "INVALID_BODY"
+        },
+        400
+      );
+    }
+
+    const allowedKeys = [
+      "operationId",
+      "requirementId",
+      "evidenceId",
+      "decision",
+      "note"
+    ];
+
+    const extraKeys = Object.keys(body).filter(
+      (key) => !allowedKeys.includes(key)
+    );
+
+    if (extraKeys.length > 0) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "UNEXPECTED_FIELDS",
+          reason:
+            `Unexpected fields: ${extraKeys.join(", ")}`
+        },
+        400
+      );
+    }
+
+    const {
+      operationId,
+      requirementId,
+      evidenceId,
+      decision,
+      note
+    } = body;
+
+    const missingFields = [
+      ["operationId", operationId],
+      ["requirementId", requirementId],
+      ["evidenceId", evidenceId],
+      ["decision", decision],
+      ["note", note]
+    ]
+      .filter(([, value]) =>
+        !isNonEmptyString(value)
+      )
+      .map(([field]) => field);
+
+    if (missingFields.length > 0) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "MISSING_REQUIRED_FIELDS",
+          reason:
+            `Missing or empty fields: ${missingFields.join(", ")}`
+        },
+        400
+      );
+    }
+
+    const allowedDecisions:
+      VerificationDecision[] = [
+        "APPROVED",
+        "REJECTED"
+      ];
+
+    if (
+      !allowedDecisions.includes(
+        decision as VerificationDecision
+      )
+    ) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "INVALID_DECISION",
+          reason:
+            "decision must be APPROVED or REJECTED"
+        },
+        400
+      );
+    }
+
+    /*
+     * Load operation.
+     */
+    let operation: any;
+
+    try {
+      operation =
+        await client.asServiceRole.entities.Operation.get(
+          operationId
+        );
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return jsonResponse(
+          {
+            error: "Not found",
+            code: "OPERATION_NOT_FOUND"
+          },
+          404
+        );
+      }
+
+      throw error;
+    }
+
+    /*
+     * Load requirement.
+     */
+    let requirement: any;
+
+    try {
+      requirement =
+        await client.asServiceRole.entities.ReadinessRequirement.get(
+          requirementId
+        );
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return jsonResponse(
+          {
+            error: "Not found",
+            code: "REQUIREMENT_NOT_FOUND"
+          },
+          404
+        );
+      }
+
+      throw error;
     }
 
     if (requirement.operationId !== operationId) {
-      return errorResponse('Bad Request', 'Requirement does not belong to operation', 400);
+      return jsonResponse(
+        {
+          error: "Conflict",
+          code: "REQUIREMENT_OPERATION_MISMATCH"
+        },
+        409
+      );
     }
 
-    if (requirement.ownerUserId === user.id) {
-      return errorResponse('Forbidden', 'Verifier cannot verify evidence for requirements they own (independence required)', 403);
-    }
+    /*
+     * Load the exact submitted evidence.
+     */
+    let evidence: any;
 
-    if (requirement.status !== 'EVIDENCE_SUBMITTED') {
-      return errorResponse('Conflict', `Requirement must be in EVIDENCE_SUBMITTED state. Current status: ${requirement.status}`, 409);
-    }
-
-    let operation: any;
     try {
-      operation = await client.asServiceRole.entities.Operation.get(operationId);
-    } catch (e) {
-      return errorResponse('NOT_FOUND', 'Operation not found', 404);
+      evidence =
+        await client.asServiceRole.entities.Evidence.get(
+          evidenceId
+        );
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return jsonResponse(
+          {
+            error: "Not found",
+            code: "EVIDENCE_NOT_FOUND"
+          },
+          404
+        );
+      }
+
+      throw error;
     }
 
-    const verification = await client.asServiceRole.entities.Verification.create({
+    if (evidence.requirementId !== requirementId) {
+      return jsonResponse(
+        {
+          error: "Conflict",
+          code: "EVIDENCE_REQUIREMENT_MISMATCH"
+        },
+        409
+      );
+    }
+
+    if (
+      requirement.status !==
+      "EVIDENCE_SUBMITTED"
+    ) {
+      return jsonResponse(
+        {
+          error: "Conflict",
+          code:
+            "REQUIREMENT_NOT_AWAITING_VERIFICATION",
+          reason:
+            `Current requirement status: ${requirement.status}`
+        },
+        409
+      );
+    }
+
+    /*
+     * Independence is enforced by identity, not role alone.
+     */
+    if (
+      evidence.submittedBy === authUser.id ||
+      requirement.ownerUserId === authUser.id
+    ) {
+      return jsonResponse(
+        {
+          error: "Forbidden",
+          code: "VERIFIER_NOT_INDEPENDENT",
+          reason:
+            "The verifier cannot own the requirement or have submitted its evidence"
+        },
+        403
+      );
+    }
+
+    const verifiedAt =
+      new Date().toISOString();
+
+    const newRequirementStatus =
+      decision === "APPROVED"
+        ? "VERIFIED"
+        : "REJECTED";
+
+    /*
+     * Create verification decision.
+     */
+    const verification =
+      await client.asServiceRole.entities.Verification.create(
+        {
+          requirementId,
+          verifierUserId: authUser.id,
+          decision,
+          note: note.trim(),
+          verifiedAt
+        }
+      );
+
+    /*
+     * Update only the requirement.
+     */
+    await client.asServiceRole.entities.ReadinessRequirement.update(
       requirementId,
-      verifierUserId: user.id,
-      decision,
-      note
-    });
-
-    const newStatus = decision === 'APPROVED' ? 'VERIFIED' : 'REJECTED';
-    await client.asServiceRole.entities.ReadinessRequirement.update(requirementId, {
-      status: newStatus
-    });
-
-    const eventType = decision === 'APPROVED' ? 'VERIFICATION_APPROVED' : 'VERIFICATION_REJECTED';
-    await appendEvent(
-      client,
-      operationId,
-      eventType,
-      user.id,
-      `${user.email} verified evidence for "${requirement.label}" as ${decision}`,
-      'EVIDENCE_SUBMITTED',
-      newStatus,
-      { requirementId, decision, verificationId: verification.id }
+      {
+        status: newRequirementStatus
+      }
     );
 
-    const recalcResult = await invokeRecalculate(client, operationId);
+    /*
+     * Only recalculate-readiness writes
+     * Operation.currentState.
+     */
+    let transition: any;
 
-    return successResponse({
-      success: true,
-      verification,
-      stateRecalculation: recalcResult,
-      note: decision === 'APPROVED'
-        ? 'Evidence approved. Operation may be released if all requirements verified.'
-        : 'Evidence rejected. Requirement returned to owner for resubmission.'
-    });
+    try {
+      const recalculationResponse =
+        await client.functions.invoke(
+          "recalculate-readiness",
+          {
+            operationId
+          }
+        );
 
+      transition = normalizeFunctionResult(
+        recalculationResponse
+      );
+    } catch (error) {
+      console.error(
+        "verify-evidence readiness recalculation failed:",
+        error
+      );
+
+      return jsonResponse(
+        {
+          error: "Readiness recalculation failed",
+          code: "READINESS_RECALCULATION_FAILED",
+          verificationId: verification.id,
+          operationId,
+          requirementId,
+          requirementStatus:
+            newRequirementStatus
+        },
+        500
+      );
+    }
+
+    const eventType =
+      decision === "APPROVED"
+        ? "VERIFICATION_APPROVED"
+        : "VERIFICATION_REJECTED";
+
+    /*
+     * Append audit event.
+     */
+    const operationalEvent =
+      await appendOperationalEvent(
+        client,
+        {
+          operationId,
+          eventType,
+          actorUserId: authUser.id,
+          previousState:
+            transition?.previousState ??
+            operation.currentState,
+          newState:
+            transition?.newState ??
+            operation.currentState,
+          message:
+            `${authUser.email ?? authUser.id} ${decision === "APPROVED" ? "approved" : "rejected"} evidence for "${requirement.label}"`,
+          metadata: {
+            verificationId:
+              verification.id,
+            evidenceId,
+            requirementId,
+            requirementLabel:
+              requirement.label,
+            verifierUserId:
+              authUser.id,
+            evidenceSubmittedBy:
+              evidence.submittedBy,
+            decision,
+            previousRequirementStatus:
+              requirement.status,
+            newRequirementStatus
+          },
+          createdAt: verifiedAt
+        }
+      );
+
+    return jsonResponse(
+      {
+        success: true,
+        result: {
+          verificationId:
+            verification.id,
+          operationalEventId:
+            operationalEvent.id,
+          evidenceId,
+          operationId,
+          requirementId,
+          verifierUserId:
+            authUser.id,
+          verifiedAt,
+          decision,
+          previousRequirementStatus:
+            requirement.status,
+          newRequirementStatus,
+          previousState:
+            transition?.previousState ??
+            operation.currentState,
+          newState:
+            transition?.newState ??
+            operation.currentState,
+          stateChanged:
+            transition?.stateChanged === true
+        }
+      },
+      200
+    );
   } catch (error) {
-    console.error('verifyEvidence error:', error);
-    return errorResponse('Internal Server Error', String(error), 500);
+    console.error(
+      "verify-evidence error:",
+      error
+    );
+
+    return jsonResponse(
+      {
+        error: "Internal server error"
+      },
+      500
+    );
   }
-}
+});

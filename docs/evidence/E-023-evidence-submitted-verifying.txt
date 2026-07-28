@@ -1,0 +1,76 @@
+﻿{
+  "test": "E-023 - Accountable owner submits evidence and operation enters VERIFYING",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "ACCOUNTABLE_OWNER"
+  },
+  "request": {
+    "operationId": "6a6811142f9771f10680fed0",
+    "requirementId": "6a68365aa6236618b481752c",
+    "evidenceType": "NOTE",
+    "note": "Fall protection anchor was reconnected, mechanically secured, and visually inspected by the accountable owner."
+  },
+  "before": {
+    "operationState": "HOLD",
+    "requirementStatus": "OWNED",
+    "ownerUserId": "6a67a87fb27a05cbd4672d8e",
+    "evidenceCount": 0,
+    "evidenceEventCount": 0
+  },
+  "invocationResult": {
+    "succeeded": true,
+    "data": {
+      "success": true,
+      "result": {
+        "evidenceId": "6a6867aac519c2014ff43088",
+        "operationalEventId": "6a6867abfd8d2094c4417afd",
+        "operationId": "6a6811142f9771f10680fed0",
+        "requirementId": "6a68365aa6236618b481752c",
+        "submittedBy": "6a67a87fb27a05cbd4672d8e",
+        "submittedAt": "2026-07-28T08:26:18.175Z",
+        "evidenceType": "NOTE",
+        "previousRequirementStatus": "OWNED",
+        "newRequirementStatus": "EVIDENCE_SUBMITTED",
+        "previousState": "HOLD",
+        "newState": "VERIFYING",
+        "stateChanged": true
+      }
+    }
+  },
+  "after": {
+    "operationState": "VERIFYING",
+    "requirementStatus": "EVIDENCE_SUBMITTED",
+    "ownerUserId": "6a67a87fb27a05cbd4672d8e",
+    "evidenceCount": 1,
+    "evidenceEventCount": 1
+  },
+  "createdEvidence": {
+    "id": "6a6867aac519c2014ff43088",
+    "requirementId": "6a68365aa6236618b481752c",
+    "submittedBy": "6a67a87fb27a05cbd4672d8e",
+    "evidenceType": "NOTE",
+    "note": "Fall protection anchor was reconnected, mechanically secured, and visually inspected by the accountable owner.",
+    "fileUrl": null,
+    "submittedAt": "2026-07-28T08:26:18.175Z"
+  },
+  "createdEvent": {
+    "id": "6a6867abfd8d2094c4417afd",
+    "eventType": "EVIDENCE_SUBMITTED",
+    "actorUserId": "6a67a87fb27a05cbd4672d8e",
+    "previousState": "HOLD",
+    "newState": "VERIFYING",
+    "metadata": {
+      "evidenceId": "6a6867aac519c2014ff43088",
+      "requirementId": "6a68365aa6236618b481752c",
+      "requirementLabel": "Fall protection anchor",
+      "evidenceType": "NOTE",
+      "submittedBy": "6a67a87fb27a05cbd4672d8e",
+      "ownershipAcceptanceId": "6a6864615ea5090518b6737d",
+      "previousRequirementStatus": "OWNED",
+      "newRequirementStatus": "EVIDENCE_SUBMITTED",
+      "hasFileUrl": false
+    },
+    "createdAt": "2026-07-28T08:26:18.175Z"
+  }
+}

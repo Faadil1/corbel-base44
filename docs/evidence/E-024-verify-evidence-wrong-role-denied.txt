@@ -1,0 +1,41 @@
+﻿{
+  "test": "E-024 - verify-evidence rejects a non-verifier role",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "ACCOUNTABLE_OWNER"
+  },
+  "request": {
+    "operationId": "6a6811142f9771f10680fed0",
+    "requirementId": "6a68365aa6236618b481752c",
+    "evidenceId": "6a6867aac519c2014ff43088",
+    "decision": "APPROVED",
+    "note": "Evidence confirms that the anchor is reconnected and secured."
+  },
+  "before": {
+    "operationState": "VERIFYING",
+    "requirementStatus": "EVIDENCE_SUBMITTED",
+    "verificationCount": 0,
+    "approvedEventCount": 0,
+    "rejectedEventCount": 0
+  },
+  "invocationResult": {
+    "succeeded": false,
+    "name": "AxiosError",
+    "message": "Request failed with status code 403",
+    "status": 403,
+    "code": "ROLE_FORBIDDEN",
+    "responseData": {
+      "error": "Forbidden",
+      "code": "ROLE_FORBIDDEN",
+      "reason": "verify-evidence requires the INDEPENDENT_VERIFIER role"
+    }
+  },
+  "after": {
+    "operationState": "VERIFYING",
+    "requirementStatus": "EVIDENCE_SUBMITTED",
+    "verificationCount": 0,
+    "approvedEventCount": 0,
+    "rejectedEventCount": 0
+  }
+}

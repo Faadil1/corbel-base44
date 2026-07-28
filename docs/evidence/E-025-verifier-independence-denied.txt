@@ -1,0 +1,39 @@
+﻿{
+  "test": "E-025 - A verifier cannot approve evidence they submitted",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "INDEPENDENT_VERIFIER"
+  },
+  "independenceCheck": {
+    "evidenceSubmittedBy": "6a67a87fb27a05cbd4672d8e",
+    "requirementOwnerUserId": "6a67a87fb27a05cbd4672d8e",
+    "verifierUserId": "6a67a87fb27a05cbd4672d8e",
+    "sameAsSubmitter": true,
+    "sameAsOwner": true
+  },
+  "before": {
+    "operationState": "VERIFYING",
+    "requirementStatus": "EVIDENCE_SUBMITTED",
+    "verificationCount": 0,
+    "approvedEventCount": 0
+  },
+  "invocationResult": {
+    "succeeded": false,
+    "name": "AxiosError",
+    "message": "Request failed with status code 403",
+    "status": 403,
+    "code": "VERIFIER_NOT_INDEPENDENT",
+    "responseData": {
+      "error": "Forbidden",
+      "code": "VERIFIER_NOT_INDEPENDENT",
+      "reason": "The verifier cannot own the requirement or have submitted its evidence"
+    }
+  },
+  "after": {
+    "operationState": "VERIFYING",
+    "requirementStatus": "EVIDENCE_SUBMITTED",
+    "verificationCount": 0,
+    "approvedEventCount": 0
+  }
+}
