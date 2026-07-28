@@ -1,260 +1,147 @@
-// CORBEL: recalculateReadiness() - Internal state machine
-// This is the ONLY place where Operation.currentState can be changed
-// Called after every action that might affect readiness
+import { createClientFromRequest } from "npm:@base44/sdk";
 
-// Inline event helper for SHA256 hashing
-async function computeEventHash(previousHash: string | null, payload: any): Promise<string> {
-  const canonical = {
-    operationId: payload.operationId,
-    eventType: payload.eventType,
-    actorUserId: payload.actorUserId,
-    previousState: payload.previousState || '',
-    newState: payload.newState || '',
-    message: payload.message,
-    metadata: payload.metadata || {},
-    createdAt: payload.createdAt
-  };
-  const canonicalPayload = JSON.stringify(canonical);
-  const chainData = previousHash ? previousHash + canonicalPayload : canonicalPayload;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(chainData);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function appendEvent(
+async function recalculateReadiness(
   client: any,
   operationId: string,
-  eventType: string,
-  actorUserId: string,
-  message: string,
-  previousState?: string,
-  newState?: string,
-  metadata?: Record<string, any>
-): Promise<any | null> {
-  try {
-    const lastEvents = await client.asServiceRole.entities.OperationalEvent.filter(
-      { operationId },
-      '-createdAt',
-      1
+  requirements: any[]
+): Promise<Record<string, any>> {
+  // Load the Operation
+  const operation = await client.asServiceRole.entities.Operation.get(operationId);
+  const previousState = operation.currentState;
+
+  // Determine new state based on mandatory rules
+  let newState: string;
+
+  // Rule 1: Any UNOWNED, OWNED, or REJECTED → HOLD
+  const hasUnowned = requirements.some((r: any) => r.status === "UNOWNED");
+  const hasOwned = requirements.some((r: any) => r.status === "OWNED");
+  const hasRejected = requirements.some((r: any) => r.status === "REJECTED");
+
+  if (hasUnowned || hasOwned || hasRejected) {
+    newState = "HOLD";
+  } else {
+    // Rule 2: Any EVIDENCE_SUBMITTED → VERIFYING
+    const hasEvidenceSubmitted = requirements.some(
+      (r: any) => r.status === "EVIDENCE_SUBMITTED"
     );
-    const previousEventHash = lastEvents.length > 0 ? lastEvents[0].eventHash : null;
-    const now = new Date().toISOString();
-    const payload = {
-      operationId,
-      eventType,
-      actorUserId,
-      previousState,
-      newState,
-      message,
-      metadata: metadata || {},
-      createdAt: now
-    };
-    const eventHash = await computeEventHash(previousEventHash, payload);
-    return await client.asServiceRole.entities.OperationalEvent.create({
-      operationId,
-      eventType,
-      actorUserId,
-      previousState,
-      newState,
-      message,
-      metadata,
-      previousEventHash,
-      eventHash,
-      createdAt: now
-    });
-  } catch (error) {
-    console.error('Error appending event:', error);
-    return null;
+
+    if (hasEvidenceSubmitted) {
+      newState = "VERIFYING";
+    } else {
+      // Rules 3-5: State-specific transitions with fallback
+      const allSatisfied = requirements.every(
+        (r: any) => r.status === "SATISFIED"
+      );
+      const allSatisfiedOrVerified = requirements.every(
+        (r: any) => r.status === "SATISFIED" || r.status === "VERIFIED"
+      );
+
+      if (previousState === "READY" && allSatisfied) {
+        // Rule 3: previousState === READY and every critical requirement is SATISFIED → READY
+        newState = "READY";
+      } else if (previousState === "VERIFYING" && allSatisfiedOrVerified) {
+        // Rule 4: previousState === VERIFYING and every critical requirement is SATISFIED or VERIFIED → RELEASED
+        newState = "RELEASED";
+      } else if (previousState === "RELEASED" && allSatisfiedOrVerified) {
+        // Rule 5: previousState === RELEASED and every critical requirement is SATISFIED or VERIFIED → RELEASED
+        newState = "RELEASED";
+      } else {
+        // Fallback: every other combination → preserve previousState
+        newState = previousState;
+      }
+    }
   }
-}
 
-interface RecalculateInput {
-  client: any;
-  operationId: string;
-}
-
-interface StateTransitionResult {
-  operationId: string;
-  previousState: string;
-  newState: string;
-  stateChanged: boolean;
-  reason: string;
-}
-
-// Internal shared function - exported for other backend functions to call
-export async function recalculateReadiness(input: RecalculateInput): Promise<StateTransitionResult> {
-  const { client, operationId } = input;
-
-  try {
-    // Fetch current operation state
-    const operation = await client.asServiceRole.entities.Operation.get(operationId);
-    const previousState = operation.currentState;
-
-    // Fetch all critical requirements for this operation
-    const requirements = await client.asServiceRole.entities.ReadinessRequirement.filter({
-      operationId,
-      criticality: 'CRITICAL'
+  // Update operation state if changed
+  if (previousState !== newState) {
+    await client.asServiceRole.entities.Operation.update(operationId, {
+      currentState: newState
     });
-
-    // STATE TRANSITION RULES
-    // Apply in priority order (most restrictive first)
-
-    // 1. Any REJECTED critical requirement → HOLD
-    const hasRejected = requirements.some((r: any) => r.status === 'REJECTED');
-    if (hasRejected) {
-      const newState = 'HOLD';
-      if (previousState !== newState) {
-        await updateOperationState(client, operationId, previousState, newState, 'Rejected evidence detected');
-      }
-      return {
-        operationId,
-        previousState,
-        newState,
-        stateChanged: previousState !== newState,
-        reason: 'One or more critical requirements rejected'
-      };
-    }
-
-    // 2. Any UNOWNED critical requirement → HOLD
-    const hasUnowned = requirements.some((r: any) => r.status === 'UNOWNED');
-    if (hasUnowned) {
-      const newState = 'HOLD';
-      if (previousState !== newState) {
-        await updateOperationState(client, operationId, previousState, newState, 'Unowned critical requirement');
-      }
-      return {
-        operationId,
-        previousState,
-        newState,
-        stateChanged: previousState !== newState,
-        reason: 'Critical requirement has no accountable owner'
-      };
-    }
-
-    // 3. Any OWNED requirement missing evidence → HOLD
-    const hasOwnedNoEvidence = requirements.some((r: any) =>
-      r.status === 'OWNED' && r.evidenceRequired
-    );
-    if (hasOwnedNoEvidence) {
-      const newState = 'HOLD';
-      if (previousState !== newState) {
-        await updateOperationState(client, operationId, previousState, newState, 'Evidence required but not submitted');
-      }
-      return {
-        operationId,
-        previousState,
-        newState,
-        stateChanged: previousState !== newState,
-        reason: 'Owned critical requirement awaiting evidence'
-      };
-    }
-
-    // 4. Any EVIDENCE_SUBMITTED awaiting verification → VERIFYING
-    const hasAwaitingVerification = requirements.some((r: any) =>
-      r.status === 'EVIDENCE_SUBMITTED' && r.verificationRequired
-    );
-    if (hasAwaitingVerification) {
-      const newState = 'VERIFYING';
-      if (previousState !== newState) {
-        await updateOperationState(client, operationId, previousState, newState, 'Evidence submitted, awaiting verification');
-      }
-      return {
-        operationId,
-        previousState,
-        newState,
-        stateChanged: previousState !== newState,
-        reason: 'Critical evidence awaiting independent verification'
-      };
-    }
-
-    // 5. All critical requirements VERIFIED or SATISFIED → RELEASED
-    const allVerified = requirements.every((r: any) =>
-      r.status === 'VERIFIED' || r.status === 'SATISFIED'
-    );
-    if (allVerified) {
-      const newState = 'RELEASED';
-      if (previousState !== newState) {
-        await updateOperationState(client, operationId, previousState, newState, 'All critical requirements verified');
-      }
-      return {
-        operationId,
-        previousState,
-        newState,
-        stateChanged: previousState !== newState,
-        reason: 'All critical requirements satisfied and verified'
-      };
-    }
-
-    // No state change needed
-    return {
-      operationId,
-      previousState,
-      newState: previousState,
-      stateChanged: false,
-      reason: 'No state change required'
-    };
-  } catch (error) {
-    console.error('recalculateReadiness error:', error);
-    throw error;
   }
-}
 
-async function updateOperationState(
-  client: any,
-  operationId: string,
-  previousState: string,
-  newState: string,
-  message: string
-): Promise<void> {
-  // Update operation state
-  await client.asServiceRole.entities.Operation.update(operationId, {
-    currentState: newState
-  });
-
-  // Create immutable operational event with hash chain
-  await appendEvent(
-    client,
+  return {
     operationId,
-    'STATE_CHANGED',
-    'system', // System-initiated state changes
-    message,
     previousState,
     newState,
-    { automatic: true }
-  );
+    stateChanged: previousState !== newState
+  };
 }
 
-// Public endpoint for testing/debugging (optional)
-export async function handler(req: Request): Promise<Response> {
+Deno.serve(async (req: Request): Promise<Response> => {
   try {
-    const { createClientFromRequest } = await import('npm:@base44/sdk');
+    // Require authenticated user
     const client = createClientFromRequest(req);
-    const body = await req.json();
-    const { operationId } = body;
-
-    if (!operationId) {
+    const user = await client.auth.me();
+    if (!user) {
       return new Response(
-        JSON.stringify({ error: 'Bad Request', reason: 'operationId required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    const result = await recalculateReadiness({ client, operationId });
+    // Parse request
+    const body = await req.json();
+    const { operationId } = body;
+
+    // Validate: operationId must be present
+    if (!operationId || typeof operationId !== "string") {
+      return new Response(
+        JSON.stringify({ error: "operationId is required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate: no extra fields allowed (reject currentState, targetState, etc.)
+    const allowedKeys = ["operationId"];
+    const extraKeys = Object.keys(body).filter((k) => !allowedKeys.includes(k));
+    if (extraKeys.length > 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid request",
+          reason: `Unexpected fields: ${extraKeys.join(", ")}`
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate: operation exists
+    const operation = await client.asServiceRole.entities.Operation.get(operationId);
+    if (!operation) {
+      return new Response(
+        JSON.stringify({ error: "Operation not found" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Load critical requirements
+    const requirements = await client.asServiceRole.entities.ReadinessRequirement.filter({
+      operationId,
+      criticality: "CRITICAL"
+    });
+
+    // Check for zero critical requirements
+    if (requirements.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Conflict",
+          code: "NO_CRITICAL_REQUIREMENTS"
+        }),
+        { status: 409, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Recalculate
+    const result = await recalculateReadiness(client, operationId, requirements);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        result
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: true, result }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('recalculateReadiness handler error:', error);
+    console.error("recalculate-readiness error:", error);
     return new Response(
-      JSON.stringify({ error: 'Internal Server Error', details: String(error) }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
-}
+});
