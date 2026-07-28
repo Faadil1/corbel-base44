@@ -1,0 +1,35 @@
+﻿{
+  "test": "E-021 - accept-ownership rejects the wrong CORBEL role",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "OPERATIONS_LEAD"
+  },
+  "before": {
+    "operationState": "HOLD",
+    "requirementStatus": "UNOWNED",
+    "ownerUserId": "",
+    "acceptanceCount": 0,
+    "ownershipEventCount": 0
+  },
+  "invocationResult": {
+    "succeeded": false,
+    "name": "AxiosError",
+    "message": "Request failed with status code 403",
+    "status": 403,
+    "code": "ROLE_FORBIDDEN",
+    "responseData": {
+      "error": "Forbidden",
+      "code": "ROLE_FORBIDDEN",
+      "reason": "accept-ownership requires the ACCOUNTABLE_OWNER role"
+    }
+  },
+  "after": {
+    "operationState": "HOLD",
+    "requirementStatus": "UNOWNED",
+    "ownerUserId": "",
+    "acceptanceCount": 0,
+    "ownershipEventCount": 0
+  }
+}
+

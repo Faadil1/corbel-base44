@@ -1,0 +1,65 @@
+﻿{
+  "test": "E-022 - Accountable owner accepts ownership while operation remains HOLD",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "ACCOUNTABLE_OWNER"
+  },
+  "before": {
+    "operationState": "HOLD",
+    "requirementStatus": "UNOWNED",
+    "ownerUserId": "",
+    "acceptanceCount": 0,
+    "ownershipEventCount": 0
+  },
+  "invocationResult": {
+    "succeeded": true,
+    "data": {
+      "success": true,
+      "result": {
+        "ownershipAcceptanceId": "6a6864615ea5090518b6737d",
+        "operationalEventId": "6a686462598263517840397a",
+        "operationId": "6a6811142f9771f10680fed0",
+        "requirementId": "6a68365aa6236618b481752c",
+        "acceptedBy": "6a67a87fb27a05cbd4672d8e",
+        "acceptedAt": "2026-07-28T08:12:17.233Z",
+        "previousRequirementStatus": "UNOWNED",
+        "newRequirementStatus": "OWNED",
+        "previousState": "HOLD",
+        "newState": "HOLD",
+        "stateChanged": false
+      }
+    }
+  },
+  "after": {
+    "operationState": "HOLD",
+    "requirementStatus": "OWNED",
+    "ownerUserId": "6a67a87fb27a05cbd4672d8e",
+    "acceptanceCount": 1,
+    "ownershipEventCount": 1
+  },
+  "createdAcceptance": {
+    "id": "6a6864615ea5090518b6737d",
+    "requirementId": "6a68365aa6236618b481752c",
+    "acceptedBy": "6a67a87fb27a05cbd4672d8e",
+    "acceptedAt": "2026-07-28T08:12:17.233Z",
+    "status": "ACTIVE"
+  },
+  "createdEvent": {
+    "id": "6a686462598263517840397a",
+    "eventType": "OWNERSHIP_ACCEPTED",
+    "actorUserId": "6a67a87fb27a05cbd4672d8e",
+    "previousState": "HOLD",
+    "newState": "HOLD",
+    "metadata": {
+      "ownershipAcceptanceId": "6a6864615ea5090518b6737d",
+      "requirementId": "6a68365aa6236618b481752c",
+      "requirementLabel": "Fall protection anchor",
+      "acceptedBy": "6a67a87fb27a05cbd4672d8e",
+      "previousRequirementStatus": "UNOWNED",
+      "newRequirementStatus": "OWNED"
+    },
+    "createdAt": "2026-07-28T08:12:17.233Z"
+  }
+}
+
