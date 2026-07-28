@@ -1,0 +1,110 @@
+﻿{
+  "test": "E-029 - reset-demo creates a fresh append-only run",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "ACCOUNTABLE_OWNER"
+  },
+  "before": {
+    "sourceOperation": {
+      "id": "6a68f0da41047426f264151f",
+      "name": "CORBEL DEMO - RUN-001",
+      "currentState": "READY"
+    },
+    "sourceRequirements": [
+      {
+        "id": "6a68f0da5ccda4af1f719341",
+        "label": "Equipment inspection",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da646d88cb38591579",
+        "label": "Supervisor present",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da90ef821b2eb9a6b5",
+        "label": "Crew assigned",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0dae97637c9e12e65a6",
+        "label": "Fall protection anchor",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      }
+    ]
+  },
+  "invocationResult": {
+    "succeeded": false,
+    "name": "AxiosError",
+    "message": "Request failed with status code 403",
+    "status": 403,
+    "code": "DEMO_ADMIN_ONLY",
+    "responseData": {
+      "error": "Forbidden",
+      "code": "DEMO_ADMIN_ONLY",
+      "reason": "reset-demo is restricted to the CORBEL demo administrator"
+    }
+  },
+  "after": {
+    "sourceOperation": {
+      "id": "6a68f0da41047426f264151f",
+      "name": "CORBEL DEMO - RUN-001",
+      "currentState": "READY"
+    },
+    "sourceRequirements": [
+      {
+        "id": "6a68f0da5ccda4af1f719341",
+        "label": "Equipment inspection",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da646d88cb38591579",
+        "label": "Supervisor present",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da90ef821b2eb9a6b5",
+        "label": "Crew assigned",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0dae97637c9e12e65a6",
+        "label": "Fall protection anchor",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      }
+    ],
+    "newOperation": null,
+    "newRequirements": [],
+    "setupEventCount": 0,
+    "resetEventCount": 0,
+    "resetEvent": null
+  },
+  "assertions": {
+    "invocationSucceeded": false,
+    "newOperationCreated": false,
+    "newOperationIsDistinct": false,
+    "sourceStateUnchanged": true,
+    "sourceNameUnchanged": true,
+    "sourceRequirementsUnchanged": true,
+    "newOperationIsReady": false,
+    "fourRequirementsCreated": false,
+    "expectedLabelsPresent": false,
+    "allRequirementsCritical": true,
+    "allRequirementsSatisfied": true,
+    "allRequireEvidence": true,
+    "allRequireVerification": true,
+    "oneSetupEventCreated": false,
+    "oneResetEventCreated": false,
+    "resetEventLinksSource": false
+  },
+  "assertionsPassed": false
+}

@@ -1,0 +1,221 @@
+﻿{
+  "test": "E-029 - reset-demo creates a fresh append-only run",
+  "authenticatedUser": {
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "corbelRole": "ACCOUNTABLE_OWNER"
+  },
+  "before": {
+    "sourceOperation": {
+      "id": "6a68f0da41047426f264151f",
+      "name": "CORBEL DEMO - RUN-001",
+      "currentState": "READY"
+    },
+    "sourceRequirements": [
+      {
+        "id": "6a68f0da5ccda4af1f719341",
+        "label": "Equipment inspection",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da646d88cb38591579",
+        "label": "Supervisor present",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da90ef821b2eb9a6b5",
+        "label": "Crew assigned",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0dae97637c9e12e65a6",
+        "label": "Fall protection anchor",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      }
+    ]
+  },
+  "invocationResult": {
+    "succeeded": true,
+    "data": {
+      "success": true,
+      "result": {
+        "sourceOperationId": "6a68f0da41047426f264151f",
+        "sourceOperationName": "CORBEL DEMO - RUN-001",
+        "sourceOperationState": "READY",
+        "resetRunLabel": "RESET-20260728T181930Z-C3126B",
+        "newOperationId": "6a68f2b59905c27e60b06559",
+        "newOperationName": "CORBEL DEMO - RESET-20260728T181930Z-C3126B",
+        "newOperationState": "READY",
+        "requirementIds": [
+          "6a68f2b577b32fb97940c85b",
+          "6a68f2b5210d11e315c105b7",
+          "6a68f2b5401006356df477aa",
+          "6a68f2b559c34ff703b1ea0a"
+        ],
+        "requirements": [
+          {
+            "id": "6a68f2b577b32fb97940c85b",
+            "label": "Crew assigned",
+            "category": "STAFFING",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          },
+          {
+            "id": "6a68f2b5210d11e315c105b7",
+            "label": "Equipment inspection",
+            "category": "SAFETY",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          },
+          {
+            "id": "6a68f2b5401006356df477aa",
+            "label": "Fall protection anchor",
+            "category": "SAFETY",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          },
+          {
+            "id": "6a68f2b559c34ff703b1ea0a",
+            "label": "Supervisor present",
+            "category": "OVERSIGHT",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          }
+        ],
+        "setupEventId": "6a68f2b67a451ea9aa2b077f",
+        "resetEventId": "6a68f2b64c1be39aa6bb5c3d",
+        "createdAt": "2026-07-28T18:19:34.089Z"
+      }
+    }
+  },
+  "after": {
+    "sourceOperation": {
+      "id": "6a68f0da41047426f264151f",
+      "name": "CORBEL DEMO - RUN-001",
+      "currentState": "READY"
+    },
+    "sourceRequirements": [
+      {
+        "id": "6a68f0da5ccda4af1f719341",
+        "label": "Equipment inspection",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da646d88cb38591579",
+        "label": "Supervisor present",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0da90ef821b2eb9a6b5",
+        "label": "Crew assigned",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      },
+      {
+        "id": "6a68f0dae97637c9e12e65a6",
+        "label": "Fall protection anchor",
+        "status": "SATISFIED",
+        "ownerUserId": null
+      }
+    ],
+    "newOperation": {
+      "id": "6a68f2b59905c27e60b06559",
+      "name": "CORBEL DEMO - RESET-20260728T181930Z-C3126B",
+      "location": "North elevation - Roof access",
+      "currentState": "READY",
+      "createdAt": "2026-07-28T18:19:33.374Z"
+    },
+    "newRequirements": [
+      {
+        "id": "6a68f2b559c34ff703b1ea0a",
+        "label": "Supervisor present",
+        "category": "OVERSIGHT",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      },
+      {
+        "id": "6a68f2b5401006356df477aa",
+        "label": "Fall protection anchor",
+        "category": "SAFETY",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      },
+      {
+        "id": "6a68f2b5210d11e315c105b7",
+        "label": "Equipment inspection",
+        "category": "SAFETY",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      },
+      {
+        "id": "6a68f2b577b32fb97940c85b",
+        "label": "Crew assigned",
+        "category": "STAFFING",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      }
+    ],
+    "setupEventCount": 1,
+    "resetEventCount": 1,
+    "resetEvent": {
+      "id": "6a68f2b64c1be39aa6bb5c3d",
+      "eventType": "DEMO_RESET",
+      "actorUserId": "6a67a87fb27a05cbd4672d8e",
+      "previousState": "READY",
+      "newState": "READY",
+      "metadata": {
+        "sourceOperationId": "6a68f0da41047426f264151f",
+        "sourceOperationName": "CORBEL DEMO - RUN-001",
+        "sourceOperationState": "READY",
+        "resetRunLabel": "RESET-20260728T181930Z-C3126B",
+        "reason": "Prepare a fresh append-only run for the next CORBEL demonstration.",
+        "setupEventId": "6a68f2b67a451ea9aa2b077f",
+        "templateVersion": "CORBEL_DEMO_V1"
+      },
+      "previousEventHash": "0f0497a3ca74fc2a5d6994fa00e8de47d366f8a1dad76a64336a561c1d1d90d2",
+      "eventHash": "22f1b5a6658d7bf1785c3d3c112551fab9a38e2acacf7a37b7b276a11df57151",
+      "createdAt": "2026-07-28T18:19:34.089Z"
+    }
+  },
+  "assertions": {
+    "invocationSucceeded": true,
+    "newOperationCreated": true,
+    "newOperationIsDistinct": true,
+    "sourceStateUnchanged": true,
+    "sourceNameUnchanged": true,
+    "sourceRequirementsUnchanged": true,
+    "newOperationIsReady": true,
+    "fourRequirementsCreated": true,
+    "expectedLabelsPresent": true,
+    "allRequirementsCritical": true,
+    "allRequirementsSatisfied": true,
+    "allRequireEvidence": true,
+    "allRequireVerification": true,
+    "oneSetupEventCreated": true,
+    "oneResetEventCreated": true,
+    "resetEventLinksSource": true
+  },
+  "assertionsPassed": true
+}

@@ -1,130 +1,591 @@
-import { createClientFromRequest } from 'npm:@base44/sdk';
+﻿import { createClientFromRequest } from "npm:@base44/sdk";
 
-async function getAuthorizedUser(client: any, requiredRole?: string): Promise<any> {
-  try {
-    const authUser = await client.auth.me();
-    if (!authUser?.id) return { status: 401, error: 'UNAUTHENTICATED' };
-    let user;
-    try { user = await client.asServiceRole.entities.User.get(authUser.id); }
-    catch (e) { return { status: 404, error: 'NOT_FOUND' }; }
-    if (!user.corbel_role) return { status: 403, error: 'ROLE_FORBIDDEN' };
-    if (requiredRole && user.corbel_role !== requiredRole) return { status: 403, error: 'ROLE_FORBIDDEN' };
-    return { id: user.id, email: authUser.email, corbel_role: user.corbel_role };
-  } catch (error) { return { status: 500, error: 'Internal Server Error' }; }
+const JSON_HEADERS = {
+  "Content-Type": "application/json"
+};
+
+const DEMO_ADMIN_USER_ID =
+  "6a67a87fb27a05cbd4672d8d";
+
+function jsonResponse(
+  data: Record<string, unknown>,
+  status = 200
+): Response {
+  return new Response(
+    JSON.stringify(data),
+    {
+      status,
+      headers: JSON_HEADERS
+    }
+  );
 }
 
-function isErrorResponse(obj: any): boolean { return obj?.status && obj?.error; }
-function errorResponse(e: string, r: string, s: number): Response { return new Response(JSON.stringify({ error: e, reason: r }), { status: s, headers: { 'Content-Type': 'application/json' } }); }
-function successResponse(d: any, s: number = 200): Response { return new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } }); }
-
-function isProduction(): boolean {
-  const env = Deno.env.get('ENVIRONMENT') || Deno.env.get('NODE_ENV') || '';
-  return env.toLowerCase() === 'production' || env.toLowerCase() === 'prod';
+function isNonEmptyString(
+  value: unknown
+): value is string {
+  return (
+    typeof value === "string" &&
+    value.trim().length > 0
+  );
 }
 
-const DEMO_OP_ID = 'op-floor12-bayc';
-const DEMO_REQ_IDS = ['req-crew', 'req-equipment', 'req-fallprotection', 'req-supervisor'];
+function isNotFoundError(
+  error: any
+): boolean {
+  const status =
+    error?.status ??
+    error?.statusCode ??
+    error?.response?.status ??
+    null;
 
-export async function handler(req: Request): Promise<Response> {
-  try {
-    if (isProduction()) {
-      return errorResponse('Forbidden', 'Demo reset is disabled in production', 403);
-    }
+  const code =
+    error?.code ??
+    error?.data?.code ??
+    error?.response?.data?.code ??
+    null;
 
-    const client = createClientFromRequest(req);
-    const user = await getAuthorizedUser(client, 'OPERATIONS_LEAD');
-    if (isErrorResponse(user)) {
-      return errorResponse(user.error, user.reason || 'Auth failed', user.status);
-    }
+  const message =
+    String(error?.message ?? "");
 
-    console.log(`${user.email} initiated demo reset`);
+  return (
+    status === 404 ||
+    code === "NOT_FOUND" ||
+    code === "ENTITY_NOT_FOUND" ||
+    /\b404\b|not found/i.test(message)
+  );
+}
 
-    // Delete in reverse dependency order
-    const delete_entities = [
-      ['ReleaseReceipt', { operationId: DEMO_OP_ID }],
-      ['AgentRecommendation', { operationId: DEMO_OP_ID }],
-      ['OperationalEvent', { operationId: DEMO_OP_ID }],
-      ['HazardReport', { operationId: DEMO_OP_ID }],
-      ['ReadinessRequirement', { operationId: DEMO_OP_ID }],
-      ['Operation', { id: DEMO_OP_ID }]
-    ];
+function normalizeFunctionResult(
+  response: any
+): any {
+  return (
+    response?.data?.result ??
+    response?.result ??
+    response?.data ??
+    response
+  );
+}
 
-    for (const [entity, filter] of delete_entities) {
-      try {
-        const records = await client.asServiceRole.entities[entity].filter(filter);
-        for (const rec of records) {
-          await client.asServiceRole.entities[entity].delete(rec.id);
-        }
-        console.log(`Deleted ${records.length} ${entity} records`);
-      } catch (e) {
-        console.log(`No ${entity} to delete`);
-      }
-    }
+function safeError(
+  error: any
+) {
+  return {
+    name:
+      error?.name ?? null,
 
-    // Handle Verification, Evidence, OwnershipAcceptance (cross-requirement)
-    try {
-      const v = await client.asServiceRole.entities.Verification.filter({});
-      const dv = v.filter((x: any) => DEMO_REQ_IDS.includes(x.requirementId));
-      for (const x of dv) await client.asServiceRole.entities.Verification.delete(x.id);
-      console.log(`Deleted ${dv.length} verifications`);
-    } catch (e) { console.log('No verifications'); }
+    message:
+      error?.message ??
+      String(error),
 
-    try {
-      const e = await client.asServiceRole.entities.Evidence.filter({});
-      const de = e.filter((x: any) => DEMO_REQ_IDS.includes(x.requirementId));
-      for (const x of de) await client.asServiceRole.entities.Evidence.delete(x.id);
-      console.log(`Deleted ${de.length} evidence`);
-    } catch (e) { console.log('No evidence'); }
+    status:
+      error?.status ??
+      error?.response?.status ??
+      null,
 
-    try {
-      const a = await client.asServiceRole.entities.OwnershipAcceptance.filter({});
-      const da = a.filter((x: any) => DEMO_REQ_IDS.includes(x.requirementId));
-      for (const x of da) await client.asServiceRole.entities.OwnershipAcceptance.delete(x.id);
-      console.log(`Deleted ${da.length} acceptances`);
-    } catch (e) { console.log('No acceptances'); }
+    code:
+      error?.code ??
+      error?.data?.code ??
+      error?.response?.data?.code ??
+      null
+  };
+}
 
-    // Reseed
-    const DEMO_OP = {
-      id: 'op-floor12-bayc',
-      name: 'FLOOR 12 — BAY C',
-      location: 'Construction Site East, Level 12, Bay C'
-    };
+function createResetLabel(): string {
+  const timestamp =
+    new Date()
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}Z$/, "Z");
 
-    const DEMO_REQS = [
-      { id: 'req-crew', label: 'Crew assigned', category: 'staffing', criticality: 'CRITICAL' },
-      { id: 'req-equipment', label: 'Equipment inspection', category: 'safety', criticality: 'CRITICAL' },
-      { id: 'req-fallprotection', label: 'Fall protection anchor', category: 'safety', criticality: 'CRITICAL' },
-      { id: 'req-supervisor', label: 'Supervisor present', category: 'oversight', criticality: 'CRITICAL' }
-    ];
+  const suffix =
+    crypto
+      .randomUUID()
+      .slice(0, 6)
+      .toUpperCase();
 
-    await client.asServiceRole.entities.Operation.create({
-      ...DEMO_OP,
-      currentState: 'READY'
-    });
+  return (
+    `RESET-${timestamp}-${suffix}`
+  );
+}
 
-    for (const req of DEMO_REQS) {
-      await client.asServiceRole.entities.ReadinessRequirement.create({
-        id: req.id,
-        operationId: DEMO_OP.id,
-        label: req.label,
-        category: req.category,
-        criticality: req.criticality,
-        status: 'SATISFIED',
-        evidenceRequired: true,
-        verificationRequired: true,
-        ownerUserId: null
-      });
-    }
+async function sha256(
+  value: string
+): Promise<string> {
+  const encoded =
+    new TextEncoder().encode(value);
 
-    return successResponse({
-      success: true,
-      message: 'Demo environment reset successfully',
-      recreatedRecords: { operation: 1, requirements: DEMO_REQS.length },
-      readyForTesting: true
-    });
+  const digest =
+    await crypto.subtle.digest(
+      "SHA-256",
+      encoded
+    );
 
-  } catch (error) {
-    console.error('resetDemoData error:', error);
-    return errorResponse('Internal Server Error', String(error), 500);
+  return Array.from(
+    new Uint8Array(digest)
+  )
+    .map((byte) =>
+      byte
+        .toString(16)
+        .padStart(2, "0")
+    )
+    .join("");
+}
+
+async function appendOperationalEvent(
+  client: any,
+  input: {
+    operationId: string;
+    eventType: string;
+    actorUserId: string;
+    previousState: string;
+    newState: string;
+    message: string;
+    metadata: Record<string, unknown>;
+    createdAt: string;
   }
+): Promise<any> {
+  const previousEvents =
+    await client
+      .asServiceRole
+      .entities
+      .OperationalEvent
+      .filter(
+        {
+          operationId:
+            input.operationId
+        },
+        "-createdAt",
+        1
+      );
+
+  const previousEventHash =
+    previousEvents?.[0]?.eventHash ??
+    "";
+
+  const canonicalPayload = {
+    operationId:
+      input.operationId,
+
+    eventType:
+      input.eventType,
+
+    actorUserId:
+      input.actorUserId,
+
+    previousState:
+      input.previousState,
+
+    newState:
+      input.newState,
+
+    message:
+      input.message,
+
+    metadata:
+      input.metadata,
+
+    createdAt:
+      input.createdAt
+  };
+
+  const eventHash =
+    await sha256(
+      previousEventHash +
+      JSON.stringify(
+        canonicalPayload
+      )
+    );
+
+  return await client
+    .asServiceRole
+    .entities
+    .OperationalEvent
+    .create({
+      ...canonicalPayload,
+      previousEventHash,
+      eventHash
+    });
 }
+
+Deno.serve(async (
+  req: Request
+): Promise<Response> => {
+  try {
+    const client =
+      createClientFromRequest(req);
+
+    const authUser =
+      await client.auth.me();
+
+    if (!authUser?.id) {
+      return jsonResponse(
+        {
+          error: "Unauthorized",
+          code: "UNAUTHENTICATED"
+        },
+        401
+      );
+    }
+
+    let corbelUser: any;
+
+    try {
+      corbelUser =
+        await client
+          .asServiceRole
+          .entities
+          .User
+          .get(authUser.id);
+    } catch {
+      return jsonResponse(
+        {
+          error: "Forbidden",
+          code: "DEMO_ADMIN_ONLY",
+          reason:
+            "Authenticated user has no CORBEL user record"
+        },
+        403
+      );
+    }
+
+    const isApplicationAdmin =
+      corbelUser?.role === "admin" ||
+      corbelUser?._app_role === "admin";
+
+    if (
+      !isApplicationAdmin ||
+      corbelUser?.corbel_role !==
+        "ACCOUNTABLE_OWNER"
+    ) {
+      return jsonResponse(
+        {
+          error: "Forbidden",
+          code: "DEMO_ADMIN_ONLY",
+          reason:
+            "reset-demo requires an app administrator with the ACCOUNTABLE_OWNER role"
+        },
+        403
+      );
+    }
+
+    let body: any;
+
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "INVALID_JSON"
+        },
+        400
+      );
+    }
+
+    if (
+      !body ||
+      typeof body !== "object" ||
+      Array.isArray(body)
+    ) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "INVALID_BODY"
+        },
+        400
+      );
+    }
+
+    const allowedKeys = [
+      "sourceOperationId",
+      "reason"
+    ];
+
+    const extraKeys =
+      Object.keys(body).filter(
+        (key) =>
+          !allowedKeys.includes(key)
+      );
+
+    if (extraKeys.length > 0) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "UNEXPECTED_FIELDS",
+          reason:
+            `Unexpected fields: ${extraKeys.join(", ")}`
+        },
+        400
+      );
+    }
+
+    const {
+      sourceOperationId,
+      reason
+    } = body;
+
+    if (
+      !isNonEmptyString(
+        sourceOperationId
+      )
+    ) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code:
+            "MISSING_SOURCE_OPERATION_ID"
+        },
+        400
+      );
+    }
+
+    if (
+      reason !== undefined &&
+      (
+        typeof reason !== "string" ||
+        reason.trim().length === 0 ||
+        reason.trim().length > 200
+      )
+    ) {
+      return jsonResponse(
+        {
+          error: "Invalid request",
+          code: "INVALID_REASON",
+          reason:
+            "reason must be a non-empty string of at most 200 characters"
+        },
+        400
+      );
+    }
+
+    let sourceOperation: any;
+
+    try {
+      sourceOperation =
+        await client
+          .asServiceRole
+          .entities
+          .Operation
+          .get(
+            sourceOperationId.trim()
+          );
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return jsonResponse(
+          {
+            error: "Not found",
+            code:
+              "SOURCE_OPERATION_NOT_FOUND"
+          },
+          404
+        );
+      }
+
+      throw error;
+    }
+
+    if (
+      typeof sourceOperation.name !==
+        "string" ||
+      !sourceOperation.name.startsWith(
+        "CORBEL DEMO - "
+      )
+    ) {
+      return jsonResponse(
+        {
+          error: "Conflict",
+          code:
+            "SOURCE_NOT_DEMO_RUN",
+          reason:
+            "reset-demo may only originate from a CORBEL demo run"
+        },
+        409
+      );
+    }
+
+    const resetRunLabel =
+      createResetLabel();
+
+    let setupResult: any;
+
+    try {
+      const setupResponse =
+        await client.functions.invoke(
+          "setup-demo",
+          {
+            runLabel:
+              resetRunLabel
+          }
+        );
+
+      setupResult =
+        normalizeFunctionResult(
+          setupResponse
+        );
+    } catch (error) {
+      return jsonResponse(
+        {
+          error:
+            "Unable to create the new demo run",
+          code:
+            "RESET_SETUP_FAILED",
+          sourceOperationId:
+            sourceOperation.id,
+          failure:
+            safeError(error)
+        },
+        500
+      );
+    }
+
+    if (
+      !setupResult?.operationId
+    ) {
+      return jsonResponse(
+        {
+          error:
+            "setup-demo returned an invalid result",
+          code:
+            "INVALID_SETUP_RESULT",
+          sourceOperationId:
+            sourceOperation.id
+        },
+        500
+      );
+    }
+
+    const createdAt =
+      new Date().toISOString();
+
+    let resetEvent: any;
+
+    try {
+      resetEvent =
+        await appendOperationalEvent(
+          client,
+          {
+            operationId:
+              setupResult.operationId,
+
+            eventType:
+              "DEMO_RESET",
+
+            actorUserId:
+              authUser.id,
+
+            previousState:
+              setupResult.operationState ??
+              "READY",
+
+            newState:
+              setupResult.operationState ??
+              "READY",
+
+            message:
+              `Fresh demo run created from "${sourceOperation.name}"`,
+
+            metadata: {
+              sourceOperationId:
+                sourceOperation.id,
+
+              sourceOperationName:
+                sourceOperation.name,
+
+              sourceOperationState:
+                sourceOperation.currentState,
+
+              resetRunLabel,
+
+              reason:
+                typeof reason ===
+                  "string"
+                  ? reason.trim()
+                  : null,
+
+              setupEventId:
+                setupResult.operationalEventId ??
+                null,
+
+              templateVersion:
+                "CORBEL_DEMO_V1"
+            },
+
+            createdAt
+          }
+        );
+    } catch (error) {
+      return jsonResponse(
+        {
+          error:
+            "New demo run was created, but its reset audit event failed",
+          code:
+            "RESET_EVENT_FAILED",
+          sourceOperationId:
+            sourceOperation.id,
+          newOperationId:
+            setupResult.operationId,
+          failure:
+            safeError(error)
+        },
+        500
+      );
+    }
+
+    return jsonResponse(
+      {
+        success: true,
+        result: {
+          sourceOperationId:
+            sourceOperation.id,
+
+          sourceOperationName:
+            sourceOperation.name,
+
+          sourceOperationState:
+            sourceOperation.currentState,
+
+          resetRunLabel,
+
+          newOperationId:
+            setupResult.operationId,
+
+          newOperationName:
+            setupResult.operationName,
+
+          newOperationState:
+            setupResult.operationState,
+
+          requirementIds:
+            setupResult.requirementIds,
+
+          requirements:
+            setupResult.requirements,
+
+          setupEventId:
+            setupResult.operationalEventId,
+
+          resetEventId:
+            resetEvent.id,
+
+          createdAt
+        }
+      },
+      201
+    );
+  } catch (error) {
+    console.error(
+      "reset-demo error:",
+      safeError(error)
+    );
+
+    return jsonResponse(
+      {
+        error:
+          "Internal server error",
+        code:
+          "RESET_DEMO_FAILED"
+      },
+      500
+    );
+  }
+});
