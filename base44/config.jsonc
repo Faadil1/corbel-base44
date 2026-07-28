@@ -1,4 +1,4 @@
-// Base44 Project Configuration
+﻿// Base44 Project Configuration
 // JSONC enables inline documentation and discoverability directly in config files.
 
 {
@@ -12,6 +12,6 @@
 
   "site": {
     "buildCommand": "npm run build",
-    "outputDirectory": "../dist"
+    "outputDirectory": "./dist"
   }
 }
