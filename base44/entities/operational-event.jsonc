@@ -56,9 +56,18 @@
   "rls": {
     "create": false,
     "read": {
-      "user_condition": {
-        "id": "{{user.id}}"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
     },
     "update": false,
     "delete": false
