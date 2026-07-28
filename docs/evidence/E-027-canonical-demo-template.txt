@@ -1,0 +1,82 @@
+﻿{
+  "test": "E-027 - Inspect canonical demo template",
+  "operation": {
+    "sourceId": "6a6811142f9771f10680fed0",
+    "businessFields": {
+      "name": "TEST ΓÇö RECALCULATE",
+      "createdAt": "2026-07-27T04:00:00.000Z",
+      "location": "TEST",
+      "currentState": "RELEASED",
+      "updatedAt": "2026-07-27T04:00:00.000Z",
+      "created_by_id": "6a67a87fb27a05cbd4672d8e",
+      "is_sample": false
+    }
+  },
+  "requirements": [
+    {
+      "sourceId": "6a683686af2e49520809e3cd",
+      "businessFields": {
+        "createdAt": "2026-07-28T04:00:00.000Z",
+        "evidenceRequired": true,
+        "criticality": "CRITICAL",
+        "ownerUserId": null,
+        "operationId": "6a6811142f9771f10680fed0",
+        "verificationRequired": true,
+        "label": "Supervisor present",
+        "category": "OVERSIGHT",
+        "status": "SATISFIED",
+        "created_by_id": "6a67a87fb27a05cbd4672d8e",
+        "is_sample": false
+      }
+    },
+    {
+      "sourceId": "6a68365aa6236618b481752c",
+      "businessFields": {
+        "createdAt": "2026-07-28T04:00:00.000Z",
+        "evidenceRequired": true,
+        "criticality": "CRITICAL",
+        "ownerUserId": "6a67a87fb27a05cbd4672d8e",
+        "operationId": "6a6811142f9771f10680fed0",
+        "verificationRequired": true,
+        "label": "Fall protection anchor",
+        "category": "SAFETY",
+        "status": "VERIFIED",
+        "created_by_id": "6a67a87fb27a05cbd4672d8e",
+        "is_sample": false
+      }
+    },
+    {
+      "sourceId": "6a683631be62871fda91b351",
+      "businessFields": {
+        "createdAt": "2026-07-28T04:00:00.000Z",
+        "evidenceRequired": true,
+        "criticality": "CRITICAL",
+        "ownerUserId": null,
+        "operationId": "6a6811142f9771f10680fed0",
+        "verificationRequired": true,
+        "label": "Equipment inspection",
+        "category": "SAFETY",
+        "status": "SATISFIED",
+        "created_by_id": "6a67a87fb27a05cbd4672d8e",
+        "is_sample": false
+      }
+    },
+    {
+      "sourceId": "6a6835f6326527fcbc7fee93",
+      "businessFields": {
+        "createdAt": "2026-07-28T04:00:00.000Z",
+        "evidenceRequired": true,
+        "criticality": "CRITICAL",
+        "ownerUserId": null,
+        "operationId": "6a6811142f9771f10680fed0",
+        "verificationRequired": true,
+        "label": "Crew assigned",
+        "category": "STAFFING",
+        "status": "SATISFIED",
+        "created_by_id": "6a67a87fb27a05cbd4672d8e",
+        "is_sample": false
+      }
+    }
+  ],
+  "requirementCount": 4
+}

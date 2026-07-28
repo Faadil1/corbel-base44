@@ -1,0 +1,143 @@
+﻿{
+  "test": "E-028 - setup-demo creates an append-only READY run",
+  "authenticatedUser": {
+    "role": "admin",
+    "created_date": "2026-07-27T18:50:39.760000",
+    "updated_date": "2026-07-28T09:37:45.602000",
+    "disabled": null,
+    "disabled_reason": null,
+    "is_verified": true,
+    "force_password_reset": false,
+    "app_id": "6a67a87fb27a05cbd4672d8d",
+    "is_service": false,
+    "_app_role": "admin",
+    "corbel_role": "ACCOUNTABLE_OWNER",
+    "id": "6a67a87fb27a05cbd4672d8e",
+    "email": "bfaadil@gmail.com",
+    "full_name": "Faadil Boussari",
+    "collaborator_role": "editor"
+  },
+  "before": {
+    "matchingOperationCount": 0
+  },
+  "invocationResult": {
+    "succeeded": true,
+    "data": {
+      "success": true,
+      "result": {
+        "operationId": "6a68f0da41047426f264151f",
+        "operationName": "CORBEL DEMO - RUN-001",
+        "operationState": "READY",
+        "requirementIds": [
+          "6a68f0da90ef821b2eb9a6b5",
+          "6a68f0da5ccda4af1f719341",
+          "6a68f0dae97637c9e12e65a6",
+          "6a68f0da646d88cb38591579"
+        ],
+        "requirements": [
+          {
+            "id": "6a68f0da90ef821b2eb9a6b5",
+            "label": "Crew assigned",
+            "category": "STAFFING",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          },
+          {
+            "id": "6a68f0da5ccda4af1f719341",
+            "label": "Equipment inspection",
+            "category": "SAFETY",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          },
+          {
+            "id": "6a68f0dae97637c9e12e65a6",
+            "label": "Fall protection anchor",
+            "category": "SAFETY",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          },
+          {
+            "id": "6a68f0da646d88cb38591579",
+            "label": "Supervisor present",
+            "category": "OVERSIGHT",
+            "criticality": "CRITICAL",
+            "status": "SATISFIED",
+            "evidenceRequired": true,
+            "verificationRequired": true
+          }
+        ],
+        "operationalEventId": "6a68f0db000a6bdb7e3408a0",
+        "stateChanged": false,
+        "createdAt": "2026-07-28T18:11:38.325Z"
+      }
+    }
+  },
+  "after": {
+    "matchingOperationCount": 1,
+    "operation": {
+      "id": "6a68f0da41047426f264151f",
+      "name": "CORBEL DEMO - RUN-001",
+      "location": "North elevation - Roof access",
+      "currentState": "READY",
+      "createdAt": "2026-07-28T18:11:38.325Z"
+    },
+    "requirements": [
+      {
+        "id": "6a68f0da646d88cb38591579",
+        "label": "Supervisor present",
+        "category": "OVERSIGHT",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      },
+      {
+        "id": "6a68f0dae97637c9e12e65a6",
+        "label": "Fall protection anchor",
+        "category": "SAFETY",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      },
+      {
+        "id": "6a68f0da5ccda4af1f719341",
+        "label": "Equipment inspection",
+        "category": "SAFETY",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      },
+      {
+        "id": "6a68f0da90ef821b2eb9a6b5",
+        "label": "Crew assigned",
+        "category": "STAFFING",
+        "criticality": "CRITICAL",
+        "status": "SATISFIED",
+        "evidenceRequired": true,
+        "verificationRequired": true
+      }
+    ],
+    "setupEventCount": 1
+  },
+  "assertions": {
+    "invocationSucceeded": true,
+    "oneNewOperationCreated": true,
+    "operationIsReady": true,
+    "fourRequirementsCreated": true,
+    "expectedLabelsPresent": true,
+    "allRequirementsCritical": true,
+    "allRequirementsSatisfied": true,
+    "allRequireEvidence": true,
+    "allRequireVerification": true,
+    "oneSetupEventCreated": true
+  },
+  "assertionsPassed": true
+}
