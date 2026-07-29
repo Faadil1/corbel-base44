@@ -1,26 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import './styles.css';
-import { OperationalControl } from './components/OperationalControl';
+import React from "react";
+import CorbelLive from "./components/CorbelLive";
+import CorbelPreview from "./pages/CorbelPreview";
 
-interface AppProps {}
-
-export function App({}: AppProps) {
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    // Initialize Base44 or local API connection
-    setIsReady(true);
-  }, []);
-
-  if (!isReady) {
-    return (
-      <div className="corbel-flex-center corbel-loading">
-        <div>Initializing CORBEL...</div>
-      </div>
-    );
+export default function App() {
+  if (window.location.pathname === "/corbel-preview") {
+    return <CorbelPreview />;
   }
 
-  return <OperationalControl />;
+  return <CorbelLive />;
 }
-
-export default App;
